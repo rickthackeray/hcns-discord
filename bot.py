@@ -4,6 +4,7 @@ from discord import app_commands
 
 from keys import BOT_TOKEN
 
+# Orders Channel
 CHANNEL_ID = 1338670037799796858
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
@@ -11,13 +12,13 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 @bot.event
 async def on_ready():
     print("HEEEEELLOO BOT READY")
-    channel = bot.get_channel(CHANNEL_ID)
-    view = discord.ui.View()
+    orderschannel = bot.get_channel(CHANNEL_ID)
+    startview = discord.ui.View()
     shipbutton = discord.ui.Button(label="New Ship Order", emoji="⚓")
     repairbutton = discord.ui.Button(label="Repair and/or Rearm Request", emoji="🛠️")
 
-    boat_view = discord.ui.View()
-    boat_select = discord.ui.Select(
+    order_view = discord.ui.View()
+    order_select = discord.ui.Select(
         placeholder="Select the ship you want to order",
         options=[
             discord.SelectOption(label="Longhook - 640rm", value="longhook"),
@@ -28,18 +29,21 @@ async def on_ready():
             discord.SelectOption(label="Battleship (Callahan) - 3200rm + 80am5", value="bs"),
         ]
     )
-    boat_view.add_item(boat_select)
-    boat_contacts = discord.ui.
+    async def order_callback(interaction):
+        await interaction.response.send_message(f"Chosen: {order_select.values[0]}\n\n What is your Regiment? If you have none, enter your in-game Username.")
+        #await orderschannel.create_thread(name="#1", content=f"<@{interaction.user.id}>")
+    order_select.callback = order_callback
+    order_view.add_item(order_select)
 
-    async def button_callback(interaction):
-        await interaction.user.send("Please fill the form below to open a new ship order.", view=boat_view)
+    async def neworder(interaction):
+        await interaction.user.send("Please select the type of ship you would like to order.", view=order_view)
 
-    shipbutton.callback = button_callback
+    shipbutton.callback = neworder
 
-    view.add_item(shipbutton)
-    view.add_item(repairbutton)
+    startview.add_item(shipbutton)
+    startview.add_item(repairbutton)
 
-    response = await channel.create_thread(name="START HERE!",view=view)
+    response = await orderschannel.create_thread(name="START HERE!",view=startview)
     thread_id = response.thread.id
 
 
@@ -57,27 +61,6 @@ async def on_ready():
 @bot.command()
 async def add_rares(context, amount):
     await context.send(f"I would add {amount} rare metals to the total if I knew the total!")
-
-
-#@bot.tree.command(name="boatorder", description="Start a new order for a ship")
-@bot.command()
-async def boatorder(context):
-    boat_view = discord.ui.View()
-    select = discord.ui.Select(
-        placeholder="Select the ship you want to order",
-        options=[
-            discord.SelectOption(label="Longhook - 640rm", value="longhook"),
-            discord.SelectOption(label="Bowhead - 640rm", value="bowhead"),
-            discord.SelectOption(label="Submarine (Nakki) - 960rm", value="sub"),
-            discord.SelectOption(label="Frigate (Blacksteele) - 1200rm", value="frig"),
-            discord.SelectOption(label="Bluefin - 2000rm", value="bluefin"),
-            discord.SelectOption(label="Battleship (Callahan) - 3200rm + 80am5", value="bs"),
-            
-        ]
-    )
-    boat_view.add_item(select)
-    await context.send(view=boat_view)
-
 
 
 
